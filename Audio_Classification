@@ -1,0 +1,39 @@
+import sounddevice as sd
+import librosa
+from scipy.io.wavfile import write
+import os
+
+duration = 10
+sample_rate = 44100
+channels = 2
+
+print("Recording...")
+audio_data = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=channels)
+sd.wait()
+file_name = "recorded_audio.wav"
+write(file_name, sample_rate, audio_data)
+print("done")
+
+data, sample_rate = librosa.load(file_name)
+
+filename = r'C:\Users\pavan\Desktop\donateacry-corpus\donateacry_corpus_cleaned_and_updated_data'
+
+import librosa.feature
+from sklearn.metrics.pairwise import cosine_similarity
+
+best_similarity = 0
+name = ""
+
+for root, _, files in os.walk(filename):
+    for file in files:
+        directory_name = os.path.basename(root)
+        full_path = os.path.join(root, file)
+        data01, sample_rate01 = librosa.load(full_path)
+        mfcc_data = librosa.feature.mfcc(y=data, sr=sample_rate)
+        mfcc_data01 = librosa.feature.mfcc(y=data01, sr=sample_rate01)
+        similarity = cosine_similarity(mfcc_data.T, mfcc_data01.T).mean() 
+        if similarity > best_similarity:
+            best_similarity = similarity
+            name = directory_name
+
+print("Similarity:", best_similarity, "name:", name)
